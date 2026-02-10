@@ -1,11 +1,11 @@
 {
-  "name": "/",
-  "description": "Magento 2 module ",
+  "name": "plazathemes/themeoptions",
+  "description": "Magento 2 module Plazathemes_Themeoptions",
   "type": "magento2-module",
   "version": "2.0.0",
   "require": { "php": ">=7.3" },
   "autoload": {
     "files": ["registration.php"],
-    "psr-4": { "\\\\": "" }
+    "psr-4": { "Plazathemes\\Themeoptions\\": "" }
   }
 }
