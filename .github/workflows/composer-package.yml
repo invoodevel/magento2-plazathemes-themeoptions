@@ -1,0 +1,65 @@
+# Valida el paquete Composer (módulo Magento 2) y genera artefacto instalable en releases
+name: Composer package
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || github.ref }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer
+
+      - name: Validate composer.json
+        run: composer validate --no-check-publish --no-check-all
+
+      - name: Check module structure
+        run: |
+          test -f registration.php || (echo "Missing registration.php" && exit 1)
+          test -f etc/module.xml || (echo "Missing etc/module.xml" && exit 1)
+          echo "Module structure OK"
+
+  package:
+    needs: validate
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer
+
+      - name: Create Composer archive (tar.gz)
+        run: |
+          composer archive --format=tar --dir=dist
+          gzip -v dist/*.tar
+          ls -la dist/
+          test -n "$(ls dist/*.tar.gz 2>/dev/null)" || (echo "No archive produced" && exit 1)
+
+      - name: Upload archive to release
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/*.tar.gz --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
