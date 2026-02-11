@@ -1,4 +1,10 @@
 # Valida el paquete Composer (módulo Magento 2) y genera artefacto instalable en releases
+#
+# Antes de volver a publicar un release que falló: borrar el tag (local y remoto).
+#   git tag -d v2.0.0
+#   git push origin :refs/tags/v2.0.0
+# Luego en GitHub: borrar el release si existe, crear de nuevo el release con el mismo tag.
+#
 name: Composer package
 
 on:
